@@ -77,6 +77,7 @@ struct BulkFileActions {
 
 struct WorkspaceView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var showsCleanupTargets = false
 
     @ObservedObject var scanState: ScanCoordinator
     @ObservedObject var navigation: WorkspaceNavigationModel
@@ -193,6 +194,15 @@ struct WorkspaceView: View {
             ToolbarItem(placement: .automatic) { Spacer() }
             if scanState.snapshot != nil {
                 ToolbarItem(placement: .automatic) {
+                    Button {
+                        showsCleanupTargets = true
+                    } label: {
+                        Label("Cleanup Targets", systemImage: "sparkles")
+                    }
+                    .help("Find Cleanup Targets")
+                }
+
+                ToolbarItem(placement: .automatic) {
                     visualizationModePicker
                 }
             }
@@ -208,6 +218,14 @@ struct WorkspaceView: View {
         }
         .dropDestination(for: URL.self) { urls, _ in
             actions.handleDroppedURLs(urls)
+        }
+        .sheet(isPresented: $showsCleanupTargets) {
+            if let snapshot = scanState.snapshot {
+                CleanupTargetsSheet(
+                    snapshot: snapshot,
+                    addToDiscardPile: actions.bulkFileActions.addToDiscardPile
+                )
+            }
         }
     }
 }

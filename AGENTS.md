@@ -28,6 +28,11 @@ Prefer SwiftUI for UI. Use AppKit only when required for macOS system integratio
 non-UI Swift file, update its explicit source list. The Xcode project builds
 the complete app.
 
+## File map
+
+- Cleanup Suggestions implementation plan: `docs/cleanup-suggestions-implementation-plan.md`
+- RadixCore/GUI/CLI discussion memo: `docs/radix-core-gui-cli-proposal.md`
+
 ## Change guidelines
 
 - Fix data behavior in models or services; fix UI coordination in view models.

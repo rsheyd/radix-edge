@@ -1,6 +1,8 @@
 .build/
+.DS_Store
 *.xcuserstate
 xcuserdata/
 Radix.xcodeproj/xcuserdata/
 Sparkle-*/
 releases/
+/local-only/

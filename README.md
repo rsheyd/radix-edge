@@ -51,6 +51,7 @@ created by earlier supported versions.
 - Optional free-space display in disk maps
 - Smart Locations for mounted volumes, Home, Desktop, Documents, Downloads, Library, and Applications
 - Recent scan history in the sidebar
+- Conservative cleanup suggestions for reproducible build artifacts, dependencies, and caches
 - Detailed inspector with sizes, access information, parent directory, and largest children
 - Usage stats showing scans completed, data scanned, scan speeds, chart interactions, and cleanup totals — all stored locally on your Mac
 - Quick Look, Open, Reveal in Finder, Copy Path, and Move to Trash actions
