@@ -31,13 +31,15 @@ the complete app.
 ## File map
 
 - Cleanup Suggestions implementation plan: `docs/cleanup-suggestions-implementation-plan.md`
+- Debug QA scan-fixture guide: `local-only/debug-qa-scan-fixture.md`
 - RadixCore/GUI/CLI discussion memo: `docs/radix-core-gui-cli-proposal.md`
 
 ## Change guidelines
 
-- Fix data behavior in models or services; fix UI coordination in view models.
-- Add or update tests for scanner, tree, path, archive, comparison, geometry,
-  search, and formatting changes.
+- Follow the existing architecture when it remains a good fit; change ownership
+  or boundaries when that produces a clearer implementation.
+- Add focused tests when behavior changes, especially for scanner, tree, path,
+  archive, comparison, geometry, search, and formatting behavior.
 - Add new user-facing text to the appropriate `.xcstrings` catalog for every
   supported locale: `en`, `de`, `es`, `fr`, `it`, and `zh-Hans`.
 - Avoid new dependencies unless clearly justified. `RadixCore` has none.
@@ -46,11 +48,12 @@ the complete app.
 
 ## Validation
 
-Run core tests:
+Validate in proportion to the change. For code that affects core behavior, run:
 
     swift test
 
-Build the complete app into a deterministic DerivedData location:
+For app integration or UI changes, build the complete app into a deterministic
+DerivedData location:
 
     xcodebuild -project Radix.xcodeproj -scheme Radix \
       -configuration Debug -destination 'platform=macOS' \
@@ -69,6 +72,14 @@ For routine manual testing with Computer Use:
 - Never target the app as `Radix` or `com.colinkim.Radix`. Installed, archived,
   release, and DerivedData builds share that identity, so generic lookup can
   launch the wrong copy, including `/Applications/Radix.app`.
+- For repeatable Cleanup Suggestions QA, follow
+  `local-only/debug-qa-scan-fixture.md`. The Debug-only arguments are:
+
+      --qa-scan /absolute/path/to/fixture.radixscan
+      --qa-open-cleanup-suggestions
+
+  Scan archives can contain private filesystem metadata and must remain
+  untracked. These arguments are unavailable in Release builds.
 
 When the test specifically requires LLDB, scheme launch arguments, sanitizers,
 or other Xcode diagnostics, start the shared scheme from the command line
@@ -82,13 +93,12 @@ debugger; the `-b` options leave Xcode in the background.
 
 Use small, focused Conventional Commits and Conventional Commit PR titles.
 
-## Simplicity and Code Economy
+## Design guidance
 
-- Prefer the smallest coherent implementation that preserves correctness, clarity, and performance.
-- Reuse or extend an existing abstraction before adding another cache, helper, wrapper, state owner, or model field.
-- Keep state at the narrowest layer that needs it; add model or persistence fields only for a concrete consumer.
-- Consolidate mechanisms that enforce the same invariant, not those with merely similar shapes.
-- Add the minimum high-signal tests needed to cover the behavior and distinct edge cases; avoid duplicating the same scenario across layers.
-- Treat a focused change exceeding roughly 200 production lines or introducing several new types as a design-review trigger, not a hard limit.
-- Before finishing, review the diff and touched code for redundant state, branches, abstractions, repeated work, duplicate tests, and opportunities to simplify data flow; avoid unrelated refactors.
-- In performance-sensitive paths, look for repeated traversal, allocation, I/O, or main-actor work. Measure meaningful performance changes when practical, and do not add caching without evidence of repeated cost.
+- Prefer coherent implementations that preserve correctness, clarity, and
+  performance; introduce or extend abstractions based on which better fits the
+  concrete change.
+- Keep state and persistence scoped to real consumers, while allowing broader
+  ownership when coordination requires it.
+- For performance-sensitive work, investigate repeated traversal, allocation,
+  I/O, and main-actor work, and measure when practical.

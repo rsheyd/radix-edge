@@ -49,6 +49,9 @@ struct RadixApp: App {
     @StateObject private var appModel = AppModel()
     private let updaterController: SPUStandardUpdaterController
     private let issueReportURL = URL(string: "https://github.com/colinvkim/Radix/issues/new/choose")
+#if DEBUG
+    private let debugQAOptions = DebugQALaunchOptions.parse(arguments: CommandLine.arguments)
+#endif
 
     init() {
         NSWindow.allowsAutomaticWindowTabbing = false
@@ -64,6 +67,11 @@ struct RadixApp: App {
             ContentView()
                 .environmentObject(appModel)
                 .frame(minWidth: 1180, maxWidth: .infinity, minHeight: 620, maxHeight: .infinity)
+#if DEBUG
+                .task {
+                    appModel.startDebugQA(debugQAOptions)
+                }
+#endif
         }
         .defaultSize(width: 1480, height: 820)
         .windowResizability(.contentMinSize)

@@ -49,6 +49,7 @@ struct ContentView: View {
                 maxRenderedDepth: appModel.maxRenderedDepth,
                 showFreeSpaceInDiskMaps: appModel.showFreeSpaceInDiskMaps,
                 discardPileHiddenNodeIDs: appModel.discardPileHiddenNodeIDs,
+                cleanupSuggestionsPresentationRequestID: appModel.cleanupSuggestionsPresentationRequestID,
                 startupDiskTarget: appModel.startupDiskTarget,
                 fullDiskAccessStatus: appModel.fullDiskAccessStatus,
                 freeSpaceAvailableCapacity: { snapshot, focusNode in
@@ -267,6 +268,35 @@ struct ContentView: View {
             }
         } message: {
             Text(cloudFileConfirmationMessage)
+        }
+        .confirmationDialog(
+            "Full Disk Access",
+            isPresented: Binding(
+                get: {
+                    appModel.presentationCoordinator.activeDialog == .startupDiskAccess &&
+                        appModel.pendingStartupDiskScan != nil
+                },
+                set: { newValue in
+                    if !newValue {
+                        appModel.cancelPendingStartupDiskScan()
+                    }
+                }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("Open Full Disk Access") {
+                appModel.openFullDiskAccessForPendingStartupDiskScan()
+            }
+
+            Button("Scan with Limited Access") {
+                appModel.confirmLimitedStartupDiskScan()
+            }
+
+            Button("Cancel", role: .cancel) {
+                appModel.cancelPendingStartupDiskScan()
+            }
+        } message: {
+            Text("To avoid repeated macOS permission prompts, a limited scan skips protected Desktop, Documents, and Downloads folders.")
         }
         .onDisappear {
             discardPileDragDidEnd()
@@ -675,6 +705,7 @@ private struct WorkspaceDetailView: View {
     let maxRenderedDepth: Int
     let showFreeSpaceInDiskMaps: Bool
     let discardPileHiddenNodeIDs: Set<FileNodeRecord.ID>
+    let cleanupSuggestionsPresentationRequestID: UUID?
     let startupDiskTarget: ScanTarget?
     let fullDiskAccessStatus: FullDiskAccessStatus
     let freeSpaceAvailableCapacity: (ScanSnapshot, FileNodeRecord) -> Int64?
@@ -699,6 +730,7 @@ private struct WorkspaceDetailView: View {
                 maxRenderedDepth: maxRenderedDepth,
                 showFreeSpaceInDiskMaps: showFreeSpaceInDiskMaps,
                 discardPileHiddenNodeIDs: discardPileHiddenNodeIDs,
+                cleanupSuggestionsPresentationRequestID: cleanupSuggestionsPresentationRequestID,
                 startupDiskTarget: startupDiskTarget,
                 fullDiskAccessStatus: fullDiskAccessStatus,
                 freeSpaceAvailableCapacity: freeSpaceAvailableCapacity,

@@ -68,15 +68,35 @@ Do not add cleanup-classification caching merely because reopening currently rep
 
 ## Phase 2: Verify scan reuse and add measured derived-result caching
 
+### Phase 1 follow-up: startup-disk access preflight
+
+Implemented after Phase 1 manual feedback:
+
+- Before scanning the startup disk without verified Full Disk Access, show one Radix preflight instead of allowing traversal to trigger successive macOS folder-access prompts.
+- Reuse existing Full Disk Access, settings, and cancellation UI text.
+- Offer **Scan with Limited Access**, which skips every user’s protected Desktop, Documents, and Downloads folders.
+- Include the limited exclusions in scan options and sidebar cache keys so completed limited scans can be restored normally.
+- Start complete startup-disk scans without a preflight when Full Disk Access is verified.
+
 Goal: distinguish an actual sidebar-cache defect from expected restoration or scoping behavior, and optimize cleanup classification only where measurement supports it.
 
 ### Cleanup classification cache
 
-- Measure classification time and retained memory on a large real scan.
-- If reopening is perceptibly slow, add a one-entry cache for the active scan keyed by `snapshot.treeStore.contentID` and an explicit cleanup-rule version.
+- Measure archive import and cleanup classification separately against the private Macintosh HD QA fixture so the two costs are not conflated.
+- If classification is materially slow, persist its small derived result across app relaunches and Debug rebuilds; an in-memory-only cache would not improve the primary QA loop.
+- Key the result by a stable snapshot content identity, an explicit cleanup-rule version, and all output-affecting policy such as the 300 MB minimum.
+- Store only the classified target identifiers and kinds, not another copy of the file tree.
 - Keep Discard Pile membership out of cached classification results; layer it on as presentation state.
-- Invalidate naturally when tree content changes and explicitly when the classifier rule version changes.
+- Invalidate when snapshot contents, classifier rules, thresholds, or archive compatibility change.
 - Do not build a general multi-scan cleanup cache without evidence that it is needed.
+- Do not add a synthetic Debug-only cleanup snapshot yet. Reconsider it only if archive import remains a significant bottleneck after classification caching, or if UI work needs deterministic edge cases that the real fixture cannot provide.
+
+### Cache testing
+
+- Record cold import time, cold classification time, warm classification time in the same launch, and warm classification time after relaunch/rebuild.
+- Verify that cached targets resolve to the imported tree before presentation and that missing identifiers are ignored safely.
+- Cover invalidation for changed snapshot content, cleanup-rule version, and minimum-size policy.
+- Continue using the real private Macintosh HD fixture for periodic integration and performance checks; use focused unit fixtures for classifier correctness.
 
 ### Macintosh HD/sidebar investigation
 
@@ -96,6 +116,7 @@ Goal: distinguish an actual sidebar-cache defect from expected restoration or sc
 ### Validation
 
 - Run focused sidebar-cache and scan-coordinator tests, then the full core suite and deterministic app build.
+- Compare cold and warm Cleanup Suggestions timings against the same private QA archive and record the result.
 - Repeat the navigation matrix against the exact Debug bundle and distinguish restoration/scoping progress from real filesystem scanning.
 
 ## Phase 3: Persistent completed-scan caching

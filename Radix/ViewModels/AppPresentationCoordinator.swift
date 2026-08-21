@@ -38,12 +38,14 @@ final class AppPresentationCoordinator: ObservableObject {
         case error
         case trashConfirmation
         case cloudFileConfirmation
+        case startupDiskAccess
 
         fileprivate var kind: DestinationKind {
             switch self {
             case .error: .error
             case .trashConfirmation: .trashConfirmation
             case .cloudFileConfirmation: .cloudFileConfirmation
+            case .startupDiskAccess: .startupDiskAccess
             }
         }
     }
@@ -73,6 +75,7 @@ final class AppPresentationCoordinator: ObservableObject {
         case error
         case trashConfirmation
         case cloudFileConfirmation
+        case startupDiskAccess
     }
 
     private enum QueueEntry: Hashable {

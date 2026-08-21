@@ -88,6 +88,7 @@ struct WorkspaceView: View {
     let maxRenderedDepth: Int
     let showFreeSpaceInDiskMaps: Bool
     let discardPileHiddenNodeIDs: Set<FileNodeRecord.ID>
+    let cleanupSuggestionsPresentationRequestID: UUID?
     let startupDiskTarget: ScanTarget?
     let fullDiskAccessStatus: FullDiskAccessStatus
     let freeSpaceAvailableCapacity: (ScanSnapshot, FileNodeRecord) -> Int64?
@@ -197,9 +198,9 @@ struct WorkspaceView: View {
                     Button {
                         showsCleanupTargets = true
                     } label: {
-                        Label("Cleanup Targets", systemImage: "sparkles")
+                        Label("Cleanup Suggestions", systemImage: "sparkles")
                     }
-                    .help("Find Cleanup Targets")
+                    .help("Find Cleanup Suggestions")
                 }
 
                 ToolbarItem(placement: .automatic) {
@@ -223,9 +224,15 @@ struct WorkspaceView: View {
             if let snapshot = scanState.snapshot {
                 CleanupTargetsSheet(
                     snapshot: snapshot,
+                    addedTargetIDs: discardPileHiddenNodeIDs,
                     addToDiscardPile: actions.bulkFileActions.addToDiscardPile
                 )
             }
+        }
+        .task(id: cleanupSuggestionsPresentationRequestID) {
+            guard cleanupSuggestionsPresentationRequestID != nil,
+                  scanState.snapshot != nil else { return }
+            showsCleanupTargets = true
         }
     }
 }

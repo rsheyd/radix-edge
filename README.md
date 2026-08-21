@@ -4,6 +4,8 @@
 
 <h1 align="center">Radix</h1>
 
+> **Development fork:** This repository is Roman's working fork of [Radix](https://github.com/colinvkim/Radix), used to prototype, test, and refine changes that may be proposed upstream. Work here may be incomplete or change frequently. For official releases and general use, see the upstream repository.
+
 A fast, native macOS disk space analyzer that makes crowded drives easy to understand. Scan folders and volumes, explore where your storage is going, compare results over time, and safely clean up — all without leaving the app. Visit the [Radix website](https://tryradix.app) to learn more!
 
 ## Why Radix?
@@ -51,7 +53,7 @@ created by earlier supported versions.
 - Optional free-space display in disk maps
 - Smart Locations for mounted volumes, Home, Desktop, Documents, Downloads, Library, and Applications
 - Recent scan history in the sidebar
-- Conservative cleanup suggestions for reproducible build artifacts, dependencies, and caches
+- Conservative Cleanup Suggestions for reproducible build artifacts, dependencies, and caches
 - Detailed inspector with sizes, access information, parent directory, and largest children
 - Usage stats showing scans completed, data scanned, scan speeds, chart interactions, and cleanup totals — all stored locally on your Mac
 - Quick Look, Open, Reveal in Finder, Copy Path, and Move to Trash actions

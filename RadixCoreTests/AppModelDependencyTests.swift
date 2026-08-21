@@ -4,6 +4,56 @@ import XCTest
 @testable import RadixCore
 
 final class AppModelDependencyTests: XCTestCase {
+#if DEBUG
+    func testDebugQALaunchOptionsRequireAbsoluteArchivePath() {
+        XCTAssertNil(DebugQALaunchOptions.parse(arguments: ["Radix", "--qa-scan", "fixture.radixscan"]))
+        XCTAssertNil(DebugQALaunchOptions.parse(arguments: ["Radix", "--qa-open-cleanup-suggestions"]))
+
+        XCTAssertEqual(
+            DebugQALaunchOptions.parse(arguments: [
+                "Radix",
+                "--qa-scan", "/tmp/fixture.radixscan",
+                "--qa-open-cleanup-suggestions"
+            ]),
+            DebugQALaunchOptions(
+                archiveURL: URL(filePath: "/tmp/fixture.radixscan"),
+                opensCleanupSuggestions: true
+            )
+        )
+    }
+
+    @MainActor
+    func testDebugQAImportsOnceAndRequestsCleanupSuggestionsAfterRestore() async throws {
+        let archiveURL = URL(filePath: "/tmp/cleanup-qa.radixscan")
+        let root = makeTestDirectoryNode(id: "/qa", name: "qa", children: [])
+        let store = FileTreeStore(root: root, childrenByID: [root.id: []])
+        let snapshot = makeTestSnapshot(root: root, store: store)
+        let archiveService = SpyScanArchiveService(
+            importResult: try makeArchiveImportResult(archiveURL: archiveURL, snapshot: snapshot)
+        )
+        let model = AppModel(dependencies: makeDependencies(
+            preferences: completedOnboardingPreferences(),
+            scanArchiveService: archiveService
+        ))
+        let options = DebugQALaunchOptions(
+            archiveURL: archiveURL,
+            opensCleanupSuggestions: true
+        )
+
+        model.startDebugQA(options)
+
+        try await waitForAppModelCondition("Debug QA snapshot restored") {
+            model.scanState.snapshot?.id == snapshot.id &&
+                model.cleanupSuggestionsPresentationRequestID != nil
+        }
+        model.startDebugQA(options)
+
+        let importedURLs = await archiveService.importedURLsSnapshot()
+        let previewedURLs = await archiveService.previewedURLsSnapshot()
+        XCTAssertEqual(importedURLs, [archiveURL])
+        XCTAssertTrue(previewedURLs.isEmpty)
+    }
+#endif
     @MainActor
     func testProductionAndDefaultDependenciesUseIncrementalScanning() {
         let defaultDependencies = AppDependencies(
@@ -1868,6 +1918,94 @@ final class AppModelDependencyTests: XCTestCase {
     }
 
     @MainActor
+    func testStartupDiskScanWithoutFullDiskAccessWaitsForPreflightChoice() async {
+        let scanService = ControlledAppModelScanService()
+        var actions = AppSystemActions.inert
+        actions.fullDiskAccessStatus = { .notGranted }
+        let model = AppModel(dependencies: makeDependencies(
+            preferences: completedOnboardingPreferences(),
+            systemActions: actions,
+            scanService: scanService
+        ))
+        let target = ScanTarget(
+            id: "/",
+            url: URL(filePath: "/", directoryHint: .isDirectory),
+            displayName: "Macintosh HD",
+            kind: .volume
+        )
+
+        model.startScan(target)
+        await Task.yield()
+
+        XCTAssertEqual(model.pendingStartupDiskScan?.target, target)
+        XCTAssertEqual(model.presentationCoordinator.activeDialog, .startupDiskAccess)
+        XCTAssertTrue(scanService.requests.isEmpty)
+    }
+
+    @MainActor
+    func testLimitedStartupDiskScanExcludesPromptingUserFolders() async throws {
+        let scanService = ControlledAppModelScanService()
+        var actions = AppSystemActions.inert
+        actions.fullDiskAccessStatus = { .notGranted }
+        let model = AppModel(dependencies: makeDependencies(
+            preferences: completedOnboardingPreferences(),
+            systemActions: actions,
+            scanService: scanService
+        ))
+        let target = ScanTarget(
+            id: "/",
+            url: URL(filePath: "/", directoryHint: .isDirectory),
+            displayName: "Macintosh HD",
+            kind: .volume
+        )
+
+        model.startScan(target)
+        model.confirmLimitedStartupDiskScan()
+
+        try await waitForAppModelCondition("limited startup disk scan starts") {
+            scanService.requests.count == 1
+        }
+
+        let options = try XCTUnwrap(scanService.options.first)
+        let matcher = ScanExclusionMatcher(
+            patterns: options.exclusionPatterns,
+            rootPath: try XCTUnwrap(options.exclusionRootPath)
+        )
+        XCTAssertTrue(matcher.excludesKnownNormalizedPath("/Users/alex/Desktop", isDirectory: true))
+        XCTAssertTrue(matcher.excludesKnownNormalizedPath("/Users/alex/Documents", isDirectory: true))
+        XCTAssertTrue(matcher.excludesKnownNormalizedPath("/Users/alex/Downloads", isDirectory: true))
+        XCTAssertFalse(matcher.excludesKnownNormalizedPath("/Users/alex/Projects", isDirectory: true))
+        XCTAssertNil(model.pendingStartupDiskScan)
+    }
+
+    @MainActor
+    func testStartupDiskScanWithFullDiskAccessStartsWithoutPreflight() async throws {
+        let scanService = ControlledAppModelScanService()
+        var actions = AppSystemActions.inert
+        actions.fullDiskAccessStatus = { .granted }
+        let model = AppModel(dependencies: makeDependencies(
+            preferences: completedOnboardingPreferences(),
+            systemActions: actions,
+            scanService: scanService
+        ))
+        let target = ScanTarget(
+            id: "/",
+            url: URL(filePath: "/", directoryHint: .isDirectory),
+            displayName: "Macintosh HD",
+            kind: .volume
+        )
+
+        model.startScan(target)
+
+        try await waitForAppModelCondition("authorized startup disk scan starts") {
+            scanService.requests.count == 1
+        }
+
+        XCTAssertNil(model.pendingStartupDiskScan)
+        XCTAssertFalse(scanService.options[0].exclusionPatterns.contains("Users/*/Documents/"))
+    }
+
+    @MainActor
     func testAsyncFullDiskAccessRefreshAppliesLatestProbe() async throws {
         var actions = AppSystemActions.inert
         actions.asyncFullDiskAccessStatus = {
@@ -3199,6 +3337,16 @@ private final class ControlledAppModelScanService: ScanEventStreaming, @unchecke
         guard continuations.indices.contains(index) else { return nil }
         return continuations[index]
     }
+}
+
+@MainActor
+private func completedOnboardingPreferences() -> SpyAppPreferencesStore {
+    SpyAppPreferencesStore(
+        preferences: AppPreferences(
+            scan: .defaults,
+            didCompleteOnboarding: true
+        )
+    )
 }
 
 @MainActor

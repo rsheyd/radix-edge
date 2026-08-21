@@ -2,6 +2,7 @@ import SwiftUI
 
 struct CleanupTargetsSheet: View {
     let snapshot: ScanSnapshot
+    let addedTargetIDs: Set<CleanupTarget.ID>
     let addToDiscardPile: ([FileNodeRecord]) -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -12,7 +13,7 @@ struct CleanupTargetsSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .firstTextBaseline) {
-                Text("Cleanup Targets")
+                Text("Cleanup Suggestions")
                     .font(.title3.weight(.semibold))
 
                 if !isLoading {
@@ -24,7 +25,7 @@ struct CleanupTargetsSheet: View {
                 Spacer()
             }
 
-            Text("These folders contain reproducible caches, dependencies, or build output. Review the suggestions before adding them to the Discard Pile.")
+            Text("Radix found folders that may be safe to rebuild or download again. Add selected folders to the Discard Pile for a separate review. Nothing is deleted yet.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
 
@@ -34,28 +35,41 @@ struct CleanupTargetsSheet: View {
 
             HStack {
                 if !targets.isEmpty {
-                    Button(selection.count == targets.count ? "Deselect All" : "Select All") {
-                        selection = selection.count == targets.count ? [] : Set(targets.map(\.id))
+                    Button("Select High Confidence") {
+                        selection = CleanupSuggestionSelection.highConfidenceIDs(
+                            in: targets,
+                            excluding: addedTargetIDs
+                        )
+                    }
+
+                    Button("Select All") {
+                        selection = CleanupSuggestionSelection.availableIDs(
+                            in: targets,
+                            excluding: addedTargetIDs
+                        )
+                    }
+
+                    Button("Deselect All") {
+                        selection = []
                     }
                 }
 
                 Spacer()
 
-                Button("Cancel", role: .cancel) {
+                Button("Done", role: .cancel) {
                     dismiss()
                 }
                 .keyboardShortcut(.cancelAction)
 
-                Button("Add to Discard Pile") {
+                Button("Add to Cleanup Review") {
                     addToDiscardPile(targets.filter { selection.contains($0.id) }.map(\.node))
-                    dismiss()
                 }
                 .keyboardShortcut(.defaultAction)
                 .disabled(selection.isEmpty)
             }
         }
         .padding(20)
-        .frame(width: 860, height: 520)
+        .frame(width: 920, height: 540)
         .task(id: snapshot.id) {
             isLoading = true
             let treeStore = snapshot.treeStore
@@ -64,8 +78,28 @@ struct CleanupTargetsSheet: View {
             }.value
             guard !Task.isCancelled else { return }
             targets = classified
-            selection = Set(classified.map(\.id))
+            selection = CleanupSuggestionSelection.highConfidenceIDs(
+                in: classified,
+                excluding: addedTargetIDs
+            )
             isLoading = false
+        }
+        .onChange(of: addedTargetIDs) {
+            selection = CleanupSuggestionSelection.reconcile(
+                selection,
+                targets: targets,
+                excluding: addedTargetIDs
+            )
+        }
+        .onChange(of: selection) {
+            let reconciled = CleanupSuggestionSelection.reconcile(
+                selection,
+                targets: targets,
+                excluding: addedTargetIDs
+            )
+            if selection != reconciled {
+                selection = reconciled
+            }
         }
     }
 
@@ -80,27 +114,51 @@ struct CleanupTargetsSheet: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if targets.isEmpty {
             ContentUnavailableView(
-                "No Cleanup Targets Found",
+                "No Cleanup Suggestions Found",
                 systemImage: "checkmark.circle",
                 description: Text("This scan did not include any folders that Radix can conservatively identify as rebuildable.")
             )
         } else {
             Table(targets, selection: $selection) {
                 TableColumn("Name") { target in
-                    Label(target.node.name, systemImage: "sparkles")
-                        .lineLimit(1)
-                }
-                .width(min: 130, ideal: 170)
-
-                TableColumn("Safety and consequences") { target in
                     VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 5) {
-                            Text(target.kind.title)
-                                .fontWeight(.medium)
-                            Text(target.kind.confidence.title)
-                                .font(.caption2.weight(.medium))
-                                .foregroundStyle(target.kind.confidence == .high ? Color.green : Color.orange)
+                        Label(target.node.name, systemImage: "sparkles")
+                            .lineLimit(1)
+                        Text(target.node.url.path)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .help(target.node.url.path)
+                        if addedTargetIDs.contains(target.id) {
+                            Label("Added to Discard Pile", systemImage: "checkmark.circle.fill")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
+                    }
+                    .opacity(addedTargetIDs.contains(target.id) ? 0.65 : 1)
+                }
+                .width(min: 220, ideal: 270)
+
+                TableColumn("Size") { target in
+                    Text(RadixFormatters.size(target.node.allocatedSize))
+                        .monospacedDigit()
+                        .foregroundStyle(addedTargetIDs.contains(target.id) ? .secondary : .primary)
+                }
+                .width(min: 80, ideal: 90)
+
+                TableColumn("Confidence") { target in
+                    Text(target.kind.confidence.title)
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(target.kind.confidence == .high ? Color.green : Color.orange)
+                        .opacity(addedTargetIDs.contains(target.id) ? 0.65 : 1)
+                }
+                .width(min: 115, ideal: 130)
+
+                TableColumn("Details") { target in
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(target.kind.title)
+                            .fontWeight(.medium)
                         Text(target.kind.explanation)
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -111,22 +169,9 @@ struct CleanupTargetsSheet: View {
                             .lineLimit(2)
                     }
                     .padding(.vertical, 3)
+                    .opacity(addedTargetIDs.contains(target.id) ? 0.65 : 1)
                 }
-                .width(min: 280, ideal: 350)
-
-                TableColumn("Path") { target in
-                    Text(target.node.url.path)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .help(target.node.url.path)
-                }
-                .width(min: 220, ideal: 280)
-
-                TableColumn("Size") { target in
-                    Text(RadixFormatters.size(target.node.allocatedSize))
-                        .monospacedDigit()
-                }
-                .width(min: 80, ideal: 90)
+                .width(min: 320, ideal: 380)
             }
         }
     }
@@ -137,7 +182,7 @@ struct CleanupTargetsSheet: View {
         let count = selectedTargets.count.formatted()
         return String(
             localized: "\(count) selected · \(RadixFormatters.size(totalSize)) recoverable",
-            comment: "Summary of selected cleanup targets and their total recoverable size."
+            comment: "Summary of selected cleanup suggestions and their total recoverable size."
         )
     }
 }

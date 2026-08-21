@@ -97,7 +97,35 @@ nonisolated struct CleanupTarget: Identifiable, Equatable, Sendable {
     var id: FileNodeRecord.ID { node.id }
 }
 
+nonisolated enum CleanupSuggestionSelection {
+    static func highConfidenceIDs(
+        in targets: [CleanupTarget],
+        excluding unavailableIDs: Set<CleanupTarget.ID> = []
+    ) -> Set<CleanupTarget.ID> {
+        Set(targets.lazy.filter {
+            $0.kind.confidence == .high && !unavailableIDs.contains($0.id)
+        }.map(\.id))
+    }
+
+    static func availableIDs(
+        in targets: [CleanupTarget],
+        excluding unavailableIDs: Set<CleanupTarget.ID> = []
+    ) -> Set<CleanupTarget.ID> {
+        Set(targets.lazy.filter { !unavailableIDs.contains($0.id) }.map(\.id))
+    }
+
+    static func reconcile(
+        _ selection: Set<CleanupTarget.ID>,
+        targets: [CleanupTarget],
+        excluding unavailableIDs: Set<CleanupTarget.ID> = []
+    ) -> Set<CleanupTarget.ID> {
+        selection.intersection(availableIDs(in: targets, excluding: unavailableIDs))
+    }
+}
+
 nonisolated enum CleanupTargetClassifier {
+    static let minimumSuggestedSize: Int64 = 300_000_000
+
     static func targets(in treeStore: FileTreeStore) -> [CleanupTarget] {
         let nodes = treeStore.nodesByID.values
         let markerNames: Set<String> = [
@@ -108,7 +136,7 @@ nonisolated enum CleanupTargetClassifier {
         return nodes.compactMap { node in
             classify(node, markerPaths: markerPaths)
         }
-        .filter { $0.node.allocatedSize > 0 }
+        .filter { $0.node.allocatedSize >= minimumSuggestedSize }
         .sorted {
             if $0.node.allocatedSize != $1.node.allocatedSize {
                 return $0.node.allocatedSize > $1.node.allocatedSize

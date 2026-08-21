@@ -1737,6 +1737,40 @@
         }
       }
     },
+    "Add to Cleanup Review" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zur Bereinigungsprüfung hinzufügen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadir a la revisión de limpieza"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter à l’examen du nettoyage"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aggiungi alla revisione della pulizia"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入清理检查"
+          }
+        }
+      }
+    },
     "Add to Discard Pile" : {
       "comment" : "Action for marking one selected item for possible deletion.\nConfirmation button for adding a cloud-stored item to the Discard Pile.",
       "localizations" : {
@@ -1768,6 +1802,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "加入待处理列表"
+          }
+        }
+      }
+    },
+    "Added to Discard Pile" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zur Löschliste hinzugefügt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadido a la pila de descarte"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouté à la pile de suppression"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aggiunto all’elenco di eliminazione"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已加入待处理列表"
           }
         }
       }
@@ -4013,6 +4081,40 @@
         }
       }
     },
+    "Confidence" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konfidenz"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confianza"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Niveau de confiance"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affidabilità"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可信度"
+          }
+        }
+      }
+    },
     "Compare" : {
       "localizations" : {
         "de" : {
@@ -5012,6 +5114,40 @@
         }
       }
     },
+    "Details" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Details"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detalles"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Détails"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dettagli"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "详细信息"
+          }
+        }
+      }
+    },
     "Details…" : {
       "localizations" : {
         "de" : {
@@ -5042,6 +5178,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "详细信息…"
+          }
+        }
+      }
+    },
+    "Deselect All" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auswahl aufheben"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deseleccionar todo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tout désélectionner"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deseleziona tutto"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消全选"
           }
         }
       }
@@ -14255,6 +14425,40 @@
         }
       }
     },
+    "Scan with Limited Access" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit eingeschränktem Zugriff scannen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analizar con acceso limitado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analyser avec un accès limité"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scansiona con accesso limitato"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以受限访问权限扫描"
+          }
+        }
+      }
+    },
     "Scan %@" : {
       "localizations" : {
         "de" : {
@@ -15006,6 +15210,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "全选"
+          }
+        }
+      }
+    },
+    "Select High Confidence" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hohe Konfidenz auswählen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seleccionar confianza alta"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sélectionner le niveau de confiance élevé"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seleziona affidabilità elevata"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择高可信度项目"
           }
         }
       }
@@ -17612,6 +17850,40 @@
         }
       }
     },
+    "To avoid repeated macOS permission prompts, a limited scan skips protected Desktop, Documents, and Downloads folders." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Um wiederholte macOS-Berechtigungsabfragen zu vermeiden, überspringt ein eingeschränkter Scan geschützte Schreibtisch-, Dokumente- und Downloads-Ordner."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para evitar solicitudes de permiso repetidas de macOS, un análisis limitado omite las carpetas protegidas Escritorio, Documentos y Descargas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour éviter les demandes d’autorisation répétées de macOS, une analyse limitée ignore les dossiers protégés Bureau, Documents et Téléchargements."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per evitare ripetute richieste di autorizzazione di macOS, una scansione limitata ignora le cartelle protette Scrivania, Documenti e Download."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "为避免 macOS 重复显示权限提示，受限扫描会跳过受保护的桌面、文稿和下载文件夹。"
+          }
+        }
+      }
+    },
     "To enable it:" : {
       "localizations" : {
         "de" : {
@@ -18987,36 +19259,36 @@
         }
       }
     },
-    "Cleanup Targets" : {
+    "Cleanup Suggestions" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bereinigungsziele"
+            "value" : "Bereinigungsvorschläge"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Objetivos de limpieza"
+            "value" : "Sugerencias de limpieza"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cibles de nettoyage"
+            "value" : "Suggestions de nettoyage"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Elementi da ripulire"
+            "value" : "Suggerimenti per la pulizia"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "清理目标"
+            "value" : "清理建议"
           }
         }
       }
@@ -19055,36 +19327,36 @@
         }
       }
     },
-    "Find Cleanup Targets" : {
+    "Find Cleanup Suggestions" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bereinigungsziele suchen"
+            "value" : "Bereinigungsvorschläge suchen"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Buscar objetivos de limpieza"
+            "value" : "Buscar sugerencias de limpieza"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rechercher des cibles de nettoyage"
+            "value" : "Rechercher des suggestions de nettoyage"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Trova elementi da ripulire"
+            "value" : "Trova suggerimenti per la pulizia"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "查找清理目标"
+            "value" : "查找清理建议"
           }
         }
       }
@@ -19123,36 +19395,36 @@
         }
       }
     },
-    "No Cleanup Targets Found" : {
+    "No Cleanup Suggestions Found" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keine Bereinigungsziele gefunden"
+            "value" : "Keine Bereinigungsvorschläge gefunden"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No se encontraron objetivos de limpieza"
+            "value" : "No se encontraron sugerencias de limpieza"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aucune cible de nettoyage trouvée"
+            "value" : "Aucune suggestion de nettoyage trouvée"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nessun elemento da ripulire trovato"
+            "value" : "Nessun suggerimento per la pulizia trovato"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "未找到清理目标"
+            "value" : "未找到清理建议"
           }
         }
       }
@@ -19327,36 +19599,36 @@
         }
       }
     },
-    "These folders contain reproducible caches, dependencies, or build output. Review the suggestions before adding them to the Discard Pile." : {
+    "Radix found folders that may be safe to rebuild or download again. Add selected folders to the Discard Pile for a separate review. Nothing is deleted yet." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Diese Ordner enthalten reproduzierbare Caches, Abhängigkeiten oder Build-Ausgaben. Prüfe die Vorschläge, bevor du sie zur Löschliste hinzufügst."
+            "value" : "Radix hat Ordner gefunden, die möglicherweise sicher neu erstellt oder heruntergeladen werden können. Füge ausgewählte Ordner zur separaten Prüfung der Löschliste hinzu. Es wird noch nichts gelöscht."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Estas carpetas contienen cachés, dependencias o resultados de compilación reproducibles. Revisa las sugerencias antes de añadirlas a la pila de descarte."
+            "value" : "Radix encontró carpetas que podrían volver a compilarse o descargarse de forma segura. Añade las carpetas seleccionadas a la pila de descarte para revisarlas por separado. Todavía no se elimina nada."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ces dossiers contiennent des caches, des dépendances ou des produits de compilation reproductibles. Vérifiez les suggestions avant de les ajouter à la pile de suppression."
+            "value" : "Radix a trouvé des dossiers qui peuvent probablement être recréés ou téléchargés à nouveau sans risque. Ajoutez les dossiers sélectionnés à la pile de suppression pour un examen séparé. Rien n’est encore supprimé."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Queste cartelle contengono cache, dipendenze o risultati di compilazione riproducibili. Controlla i suggerimenti prima di aggiungerli all’elenco di eliminazione."
+            "value" : "Radix ha trovato cartelle che potrebbero essere ricreate o scaricate di nuovo in sicurezza. Aggiungi le cartelle selezionate all’elenco di eliminazione per una revisione separata. Non viene ancora eliminato nulla."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这些文件夹包含可重新生成的缓存、依赖项或构建输出。将其加入待处理列表前，请检查这些建议。"
+            "value" : "Radix 找到了可能可以安全重新生成或下载的文件夹。将所选文件夹加入待处理列表以单独检查。目前不会删除任何内容。"
           }
         }
       }

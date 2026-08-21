@@ -68,6 +68,31 @@ struct DiscardPileSnapshot: Equatable, Sendable {
     let summary: DiscardPileSummary
 }
 
+struct PendingStartupDiskScan: Equatable, Sendable {
+    let target: ScanTarget
+    let isRescan: Bool
+}
+
+#if DEBUG
+nonisolated struct DebugQALaunchOptions: Equatable, Sendable {
+    let archiveURL: URL
+    let opensCleanupSuggestions: Bool
+
+    static func parse(arguments: [String]) -> DebugQALaunchOptions? {
+        guard let flagIndex = arguments.firstIndex(of: "--qa-scan"),
+              arguments.indices.contains(flagIndex + 1) else {
+            return nil
+        }
+        let path = arguments[flagIndex + 1]
+        guard path.hasPrefix("/") else { return nil }
+        return DebugQALaunchOptions(
+            archiveURL: URL(filePath: path),
+            opensCleanupSuggestions: arguments.contains("--qa-open-cleanup-suggestions")
+        )
+    }
+}
+#endif
+
 @MainActor
 final class AppModel: ObservableObject {
     private struct PostTrashRemovalRequest: Sendable {
@@ -251,6 +276,12 @@ final class AppModel: ObservableObject {
             synchronizeCloudFileConfirmationPresentation()
         }
     }
+    @Published private(set) var pendingStartupDiskScan: PendingStartupDiskScan? {
+        didSet {
+            synchronizeStartupDiskAccessPresentation()
+        }
+    }
+    @Published private(set) var cleanupSuggestionsPresentationRequestID: UUID?
     @Published private(set) var discardPile = DiscardPileState()
     @Published private(set) var usageStats = AppUsageStats.empty
     @Published private var optimisticTrashVisibility = OptimisticTrashVisibilityState()
@@ -258,6 +289,9 @@ final class AppModel: ObservableObject {
 
     private let dependencies: AppDependencies
     let presentationCoordinator: AppPresentationCoordinator
+#if DEBUG
+    private var didStartDebugQA = false
+#endif
     private let scanCoordinator: ScanCoordinator
     private let sidebarModel: SidebarModel
     private let quickLookController: AppQuickLookController
@@ -394,6 +428,7 @@ final class AppModel: ObservableObject {
         showsDiscardPileReview = false
         pendingComparisonSetup = nil
         pendingImportPreview = nil
+        pendingStartupDiskScan = nil
         quickLookController.setWorkspaceWindowNumber(nil)
         scanCoordinator.stopScan()
         quickLookController.removeKeyMonitor()
@@ -598,6 +633,16 @@ final class AppModel: ObservableObject {
         } else {
             resumeDeferredArchiveImport(
                 presentationCoordinator.cancel(.dialog(.cloudFileConfirmation))
+            )
+        }
+    }
+
+    private func synchronizeStartupDiskAccessPresentation() {
+        if pendingStartupDiskScan != nil {
+            presentationCoordinator.present(.dialog(.startupDiskAccess))
+        } else {
+            resumeDeferredArchiveImport(
+                presentationCoordinator.cancel(.dialog(.startupDiskAccess))
             )
         }
     }
@@ -1374,7 +1419,10 @@ final class AppModel: ObservableObject {
         )
     }
 
-    private func importApprovedScanSnapshot(from sourceURL: URL) {
+    private func importApprovedScanSnapshot(
+        from sourceURL: URL,
+        onImported: (@MainActor () -> Void)? = nil
+    ) {
         dismissExportConfirmation()
         let progressReporter = ScanArchiveProgressReporter()
         let archiveService = dependencies.scanArchiveService
@@ -1402,6 +1450,7 @@ final class AppModel: ObservableObject {
                 try await Task.sleep(for: .milliseconds(1))
                 restoreImportedSnapshot(result.snapshot)
                 lastErrorMessage = nil
+                onImported?()
             },
             onFailure: { [weak self] error in
                 self?.presentError(error)
@@ -1411,6 +1460,17 @@ final class AppModel: ObservableObject {
             }
         )
     }
+
+#if DEBUG
+    func startDebugQA(_ options: DebugQALaunchOptions?) {
+        guard !didStartDebugQA, let options else { return }
+        didStartDebugQA = true
+        importApprovedScanSnapshot(from: options.archiveURL) { [weak self] in
+            guard options.opensCleanupSuggestions else { return }
+            self?.cleanupSuggestionsPresentationRequestID = UUID()
+        }
+    }
+#endif
 
     nonisolated private static func orderedComparisonCandidates(
         _ lhs: ScanComparisonCandidate,
@@ -1515,11 +1575,36 @@ final class AppModel: ObservableObject {
         case rescan
     }
 
+    private enum ScanAccessMode: Sendable {
+        case standard
+        case limited
+    }
+
+    private static let limitedStartupDiskExclusionPatterns = [
+        "Users/*/Desktop/",
+        "Users/*/Documents/",
+        "Users/*/Downloads/"
+    ]
+
     func startScan(_ target: ScanTarget) {
         scheduleScanStart(target, intent: .scan)
     }
 
-    private func scheduleScanStart(_ target: ScanTarget, intent: ScanStartIntent) {
+    private func scheduleScanStart(
+        _ target: ScanTarget,
+        intent: ScanStartIntent,
+        accessMode: ScanAccessMode = .standard
+    ) {
+        if accessMode == .standard,
+           target.url.standardizedFileURL.path == "/",
+           fullDiskAccessStatus != .granted {
+            pendingStartupDiskScan = PendingStartupDiskScan(
+                target: target,
+                isRescan: intent == .rescan
+            )
+            return
+        }
+
         // Defer state mutations to the next runloop to avoid
         // "Publishing changes from within view updates is not allowed."
         cancelArchiveOperation()
@@ -1534,8 +1619,28 @@ final class AppModel: ObservableObject {
             id: \.deferredScanStartID,
             task: \.deferredScanStartTask
         ) { model in
-            model.startScanNow(target, intent: intent)
+            model.startScanNow(target, intent: intent, accessMode: accessMode)
         }
+    }
+
+    func confirmLimitedStartupDiskScan() {
+        guard let pendingStartupDiskScan else { return }
+        self.pendingStartupDiskScan = nil
+        scheduleScanStart(
+            pendingStartupDiskScan.target,
+            intent: pendingStartupDiskScan.isRescan ? .rescan : .scan,
+            accessMode: .limited
+        )
+    }
+
+    func openFullDiskAccessForPendingStartupDiskScan() {
+        guard pendingStartupDiskScan != nil else { return }
+        pendingStartupDiskScan = nil
+        prepareAndOpenFullDiskAccessSettings()
+    }
+
+    func cancelPendingStartupDiskScan() {
+        pendingStartupDiskScan = nil
     }
 
     private func cancelDeferredScanStart() {
@@ -1637,9 +1742,18 @@ final class AppModel: ObservableObject {
         }
     }
 
-    private func startScanNow(_ target: ScanTarget, intent: ScanStartIntent) {
+    private func startScanNow(
+        _ target: ScanTarget,
+        intent: ScanStartIntent,
+        accessMode: ScanAccessMode
+    ) {
         cancelArchiveOperation()
-        let options = scanOptions(for: target)
+        let options = scanOptions(
+            for: target,
+            additionalExclusionPatterns: accessMode == .limited
+                ? Self.limitedStartupDiskExclusionPatterns
+                : []
+        )
         let baseline: ScanSnapshot?
         switch intent {
         case .scan:
@@ -3043,9 +3157,14 @@ final class AppModel: ObservableObject {
     private func scanOptions(
         for target: ScanTarget,
         autoSummarizeDirectories: Bool? = nil,
-        preferredExclusionRootPath: String? = nil
+        preferredExclusionRootPath: String? = nil,
+        additionalExclusionPatterns: [String] = []
     ) -> ScanOptions {
-        let exclusionPatterns = activeExclusionPatterns
+        let exclusionPatterns = ScanExclusionMatcher.normalizedPatterns(
+            activeExclusionPatterns
+                + implicitLimitedAccessExclusionPatterns(for: target)
+                + additionalExclusionPatterns
+        )
         return ScanOptions(
             includeHiddenFiles: showHiddenFiles || target.kind == .volume,
             treatPackagesAsDirectories: treatPackagesAsDirectories,
@@ -3062,6 +3181,14 @@ final class AppModel: ObservableObject {
     private var activeExclusionPatterns: [String] {
         guard useScanExclusions else { return [] }
         return ScanExclusionMatcher.normalizedPatterns(exclusionPatterns)
+    }
+
+    private func implicitLimitedAccessExclusionPatterns(for target: ScanTarget) -> [String] {
+        guard target.url.standardizedFileURL.path == "/",
+              fullDiskAccessStatus != .granted else {
+            return []
+        }
+        return Self.limitedStartupDiskExclusionPatterns
     }
 
     private var currentScanExclusionRootPath: String? {
