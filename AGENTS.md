@@ -31,6 +31,7 @@ the complete app.
 ## File map
 
 - Cleanup Suggestions implementation plan: `docs/cleanup-suggestions-implementation-plan.md`
+- Smart Cleanup Recommendations product and architecture roadmap: `docs/smart-cleanup-recommendations-roadmap.md`
 - Debug QA scan-fixture guide: `local-only/debug-qa-scan-fixture.md`
 - RadixCore/GUI/CLI discussion memo: `docs/radix-core-gui-cli-proposal.md`
 

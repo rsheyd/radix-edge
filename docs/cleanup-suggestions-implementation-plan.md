@@ -14,13 +14,15 @@ These estimates are percentage points of the Codex usage limit expected for each
 
 | Phase | Estimated usage | Main uncertainty |
 | --- | ---: | --- |
-| Phase 1: Finish Cleanup Suggestions UX | 8–12% | SwiftUI iteration, six-locale string updates, and manual UI repair cycles |
+| Phase 1: Finish Cleanup Suggestions UX — **Complete** | 8–12% | SwiftUI iteration, six-locale string updates, and manual UI repair cycles |
 | Phase 2: Verify scan reuse and add measured derived-result caching | 6–10% | Reproducing the reported Macintosh HD behavior and determining whether a cache change is actually needed |
 | Phase 3: Persistent completed-scan caching | 12–18% | Retention policy, archive integration, restoration behavior, privacy controls, failure recovery, and end-to-end testing |
 
 Phase 3 should begin with a narrower design and measurement pass, estimated at 3–5%, before committing to the full implementation. If that pass exposes archive-format changes, removable-volume identity work, or extensive settings UI, the implementation estimate should be revised upward.
 
-## Phase 1: Finish the Cleanup Suggestions UX
+## Phase 1: Finish the Cleanup Suggestions UX — Complete
+
+Completed and pushed to the development fork's `main` branch on August 20, 2026 in commit `c2a7d33`. The delivered scope includes the refined selection and review workflow, six-locale UI updates, the 300 MB minimum, startup-disk access preflight, and Debug QA archive launcher.
 
 Goal: make the current feature understandable and predictable for a first-time user, then ship it independently of broader caching work.
 
