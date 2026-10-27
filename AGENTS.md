@@ -101,3 +101,7 @@ debugger; the `-b` options leave Xcode in the background.
 - Consolidate mechanisms that enforce the same invariant, not those with merely similar shapes.
 - Before finishing, review the diff and touched code for redundant state, branches, abstractions, repeated work, duplicate tests, and opportunities to simplify data flow.
 - In performance-sensitive paths, look for repeated traversal, allocation, I/O, or main-actor work. Measure meaningful performance changes when practical.
+
+## File map
+
+- `docs/radix-core-gui-cli-proposal.md`: Historical CLI design proposal carried forward from the August fork; reassess against current upstream before implementation.
